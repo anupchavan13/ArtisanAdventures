@@ -30,13 +30,14 @@ To run the ArtisanAdventures MERN e-commerce project locally, follow these steps
 1. Clone this repository to your local machine using the following command:
 
    ```bash
-   git clone https://github.com/shopkalakriti/shopkalakriti.live.git
+   git clone https://github.com/anupchavan13/ArtisanAdventures.git
    ```
 
 2. Navigate to the project directory:
 
    ```bash
-   cd shopkalakriti.live
+   cd ArtisanAdventures
+
    ```
 
 3. Install the dependencies for the backend:
@@ -87,7 +88,7 @@ Contributions to the project are welcome! If you find a bug, have a feature requ
 2. Clone the forked repository to your local machine using the following command:
 
    ```bash
-   git clone https://github.com/shopkalakriti/shopkalakriti.live.git
+   git clone https://github.com/anupchavan13/ArtisanAdventures.git
    ```
 
 3. Create a new branch using the following command:
