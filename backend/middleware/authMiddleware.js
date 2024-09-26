@@ -1,60 +1,50 @@
-import jwt from 'jsonwebtoken'
-import asyncHandler from 'express-async-handler'
-import User from '../models/userModel.js'
+import jwt from 'jsonwebtoken';
+import asyncHandler from 'express-async-handler';
+import User from '../models/userModel.js';
+
+const throwError = (res, message, status = 401) => {
+  res.status(status);
+  throw new Error(message);
+};
 
 const protect = asyncHandler(async (req, res, next) => {
-  let token
+  const authHeader = req.headers.authorization;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      token = req.headers.authorization.split(' ')[1]
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
+    throwError(res, 'Not authorized, no token');
+  }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET)
+  const token = authHeader.split(' ')[1];
 
-      req.user = await User.findById(decoded.id).select('-password')
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select('-password');
 
-      next()
-    } catch (error) {
-      console.error(error)
-      res.status(401)
-      throw new Error('Not authorized, token failed')
+    if (!req.user) {
+      throwError(res, 'Not authorized, user not found');
     }
+    
+    next();
+  } catch (error) {
+    console.error(error);
+    throwError(res, 'Not authorized, token failed');
   }
+});
 
-  if (!token) {
-    res.status(401)
-    throw new Error('Not authorized, no token')
+const authorizeRole = (role) => (req, res, next) => {
+  if (req.user && req.user[role]) {
+    return next();
   }
-})
+  throwError(res, `Not authorized as ${role}`);
+};
 
-const admin = (req, res, next) => {
-  if (req.user && req.user.isAdmin) {
-    next()
-  } else {
-    res.status(401)
-    throw new Error('Not authorized as an admin')
-  }
-}
-
-const admin_seller = (req, res, next) => {
-  if (req.user && req.user.isAdminSeller) {
-    next()
-  } else {
-    res.status(401)
-    throw new Error('Not authorized as an admin seller')
-  }
-}
-
+const admin = authorizeRole('isAdmin');
+const admin_seller = authorizeRole('isAdminSeller');
 const admin_or_seller = (req, res, next) => {
   if (req.user && (req.user.isAdmin || req.user.isAdminSeller)) {
-    next()
-  } else {
-    res.status(401)
-    throw new Error('Not authorized as an admin')
+    return next();
   }
-}
+  throwError(res, 'Not authorized as an admin or seller');
+};
 
-export { protect, admin, admin_seller, admin_or_seller }
+export { protect, admin, admin_seller, admin_or_seller };
